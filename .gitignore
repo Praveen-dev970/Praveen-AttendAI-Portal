@@ -1,0 +1,55 @@
+# ==========================
+# Python
+# ==========================
+backend/.venv/
+backend/__pycache__/
+backend/**/*.py[cod]
+backend/.pytest_cache/
+backend/.mypy_cache/
+
+# Environment Variables
+backend/.env
+frontend/.env
+
+# Logs
+*.log
+
+# ==========================
+# Node
+# ==========================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ==========================
+# IDE
+# ==========================
+.vscode/
+.idea/
+
+# ==========================
+# OS Files
+# ==========================
+.DS_Store
+Thumbs.db
+
+# ==========================
+# Build
+# ==========================
+build/
+dist/
+
+# ==========================
+# Temporary Files
+# ==========================
+*.tmp
+*.bak
+*.swp
+
+# ==========================
+# HTML Dumps / Debug Files
+# ==========================
+profile.html
+attendance.html
+marks.html
+*.sqlite3

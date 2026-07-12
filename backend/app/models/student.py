@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 
 from app.database.database import Base
 from sqlalchemy.orm import relationship
-
+from sqlalchemy import Boolean
 
 class Student(Base):
     __tablename__ = "students"
