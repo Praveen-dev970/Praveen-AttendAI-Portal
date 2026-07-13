@@ -11,6 +11,12 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.dashboard_live import router as dashboard_router_live
 from fastapi.middleware.cors import CORSMiddleware
 
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi import _rate_limit_exceeded_handler
+
+from app.core.rate_limit import limiter
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -18,6 +24,15 @@ app = FastAPI(
     title="Praveen AttendAI API",
     version="1.0.0"
 )
+
+app.state.limiter = limiter
+
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler
+)
+
+app.add_middleware(SlowAPIMiddleware)
 
 app.include_router(
     health_router,

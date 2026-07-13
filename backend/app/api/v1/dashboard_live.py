@@ -12,13 +12,19 @@ from app.services.session_manager import SessionManager
 from app.parser.attendance_parser import AttendanceParser
 from app.parser.marks_parser import MarksParser
 
+from fastapi import Request
+
+from app.core.rate_limit import limiter
+
 router = APIRouter()
 
 security = HTTPBearer()
 
 
 @router.get("/")
+@limiter.limit("30/minute")
 def get_dashboard(
+    request: Request,
     credentials=Depends(security),
     db: Session = Depends(get_db)
 ):

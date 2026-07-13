@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 
-from app.repositories.auth_repository import AuthRepository
-from app.security.jwt import create_access_token
-from app.security.password import verify_password
+from app.core.security import create_access_token
+from app.repositories.student_repository import StudentRepository
+from app.services.live_portal_service import LivePortalService
+from app.services.sync_service import SyncService
 
 
 class AuthService:
@@ -14,22 +15,25 @@ class AuthService:
         password: str
     ):
 
-        student = AuthRepository.get_student_by_roll_number(
-            db,
-            roll_number
+        # The portal is the credential authority.  This call authenticates with
+        # AECClient.login(), then retrieves profile, attendance, and marks using
+        # the same authenticated portal session.
+        portal_data = LivePortalService().get_dashboard(roll_number, password)
+
+        profile = portal_data["student"]
+        student = StudentRepository.upsert(
+            db=db,
+            roll_number=roll_number,
+            name=profile["name"],
+            branch=profile["branch"],
+            semester=profile["semester"],
+            cgpa=profile["cgpa"],
         )
 
-        if student is None:
-            return None
-
-        if student.password_hash is None:
-            return None
-
-        if not verify_password(
-            password,
-            student.password_hash
-        ):
-            return None
+        # Keep the existing database-backed attendance endpoints current. Marks
+        # are fetched above for the CGPA and live dashboard response, but portal
+        # credentials and marks payloads are never persisted on the student.
+        SyncService.save_attendance(db, student, portal_data["attendance"])
 
         token = create_access_token(
             {
@@ -37,13 +41,10 @@ class AuthService:
             }
         )
 
-        AuthRepository.update_last_login(
-            db,
-            student
-        )
-
         return {
             "access_token": token,
-            "roll_number": student.roll_number,
-            "name": student.name
+            "student": {
+                "roll_number": student.roll_number,
+                "cgpa": student.cgpa,
+            },
         }

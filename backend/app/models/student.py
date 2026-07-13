@@ -3,7 +3,6 @@ from sqlalchemy.sql import func
 
 from app.database.database import Base
 from sqlalchemy.orm import relationship
-from sqlalchemy import Boolean
 
 class Student(Base):
     __tablename__ = "students"
@@ -16,13 +15,11 @@ class Student(Base):
 
     branch = Column(String(50))
 
-    course = Column(String(30))
-
     semester = Column(String(20))
 
     cgpa = Column(Float)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_login = Column(DateTime(timezone=True))
 
     updated_at = Column(
         DateTime(timezone=True),

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 from app.schemas.auth import (
     LoginRequest,
@@ -6,51 +7,41 @@ from app.schemas.auth import (
     StudentResponse
 )
 
-from app.services.live_portal_service import LivePortalService
+from app.clients.aec_client import AECAuthenticationError
+from app.database.database import get_db
+from app.services.auth_service import AuthService
 
-from app.core.security import create_access_token
+from fastapi import Request
+
+from app.core.rate_limit import limiter
 
 router = APIRouter()
-
-service = LivePortalService()
 
 @router.post(
     "/login",
     response_model=LoginResponse
 )
-def login(data: LoginRequest):
+@limiter.limit("10/minute")
+def login(
+    request: Request,
+    data: LoginRequest,
+    db: Session = Depends(get_db),
+):
 
     try:
-
-        # Login once and save session
-        service.login(
-            data.roll_number,
-            data.password
-        )
-
-        token = create_access_token(
-            {
-                "sub": data.roll_number
-            }
+        result = AuthService.login(
+            db=db,
+            roll_number=data.roll_number,
+            password=data.password,
         )
 
         return LoginResponse(
-
-            access_token=token,
-
-            student=StudentResponse(
-
-                roll_number=data.roll_number,
-
-                cgpa=None
-
-            )
-
+            access_token=result["access_token"],
+            student=StudentResponse(**result["student"]),
         )
 
-    except Exception as e:
-
+    except AECAuthenticationError:
         raise HTTPException(
             status_code=401,
-            detail=str(e)
+            detail="Invalid Roll Number or Password",
         )

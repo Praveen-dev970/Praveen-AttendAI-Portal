@@ -6,6 +6,10 @@ from bs4 import BeautifulSoup
 from app.utils.crypto import encrypt_password
 
 
+class AECAuthenticationError(Exception):
+    """Raised when the AEC portal rejects a student's credentials."""
+
+
 class AECClient:
 
     BASE_URL = "https://info.aec.edu.in/aec"
@@ -142,7 +146,7 @@ class AECClient:
         )
 
         if response.status_code != 302:
-            raise Exception("Invalid Roll Number or Password")
+            raise AECAuthenticationError("Invalid Roll Number or Password")
 
         return True
 
