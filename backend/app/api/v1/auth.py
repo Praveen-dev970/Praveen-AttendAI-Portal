@@ -21,7 +21,7 @@ router = APIRouter()
     "/login",
     response_model=LoginResponse
 )
-@limiter.limit("10/minute")
+@limiter.limit("20/minute")
 def login(
     request: Request,
     data: LoginRequest,

@@ -25,7 +25,7 @@ from app.security.jwt import verify_token
 
 
 @router.get("/")
-@limiter.limit("30/minute")
+@limiter.limit("35/minute")
 def get_dashboard(
     request: Request,
     refresh: bool = Query(False),
