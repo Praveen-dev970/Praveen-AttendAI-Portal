@@ -5,6 +5,7 @@ from app.parser.profile_parser import ProfileParser
 from app.services.session_manager import SessionManager
 from bs4 import BeautifulSoup
 import re
+from app.services.cache_service import CacheService
 
 class LivePortalService:
 
@@ -47,9 +48,17 @@ class LivePortalService:
 
         return marks
 
-    def get_dashboard(self, roll_number: str, password: str):
+    def get_dashboard(self, roll_number: str, password: str,refresh: bool = False,):
+
+        if not refresh:
+
+            cached = CacheService.get_dashboard(roll_number)
+
+            if cached:
+                return cached
 
         self.login(roll_number, password)
+
 
         # Fetch portal pages
         student_html = self.client.get_student_master()
@@ -104,7 +113,7 @@ class LivePortalService:
         # -----------------------------
         # Dashboard Response
         # -----------------------------
-        return {
+        dashboard = {
             "student": {
                 "roll_number": roll_number,
                 "name": name,
@@ -116,3 +125,9 @@ class LivePortalService:
             "attendance": attendance,
             "marks": marks
         }
+
+        CacheService.set_dashboard(
+            roll_number,
+            dashboard
+        )
+        return dashboard

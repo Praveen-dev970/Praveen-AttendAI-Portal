@@ -16,6 +16,7 @@ def dashboard(
     data = DashboardService.get_dashboard(
         db,
         roll_number
+        
     )
 
     if data is None:

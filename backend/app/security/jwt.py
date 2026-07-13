@@ -2,9 +2,10 @@ from datetime import datetime, timedelta, timezone
 
 from jose import jwt, JWTError
 
-JWT_SECRET = "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET"
+from app.config.settings import settings
 
-ALGORITHM = "HS256"
+JWT_SECRET = settings.JWT_SECRET
+ALGORITHM = settings.JWT_ALGORITHM
 
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 
