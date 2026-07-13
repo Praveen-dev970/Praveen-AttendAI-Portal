@@ -6,9 +6,6 @@ class MarksParser:
 
     @staticmethod
     def parse(html: str):
-        # ----------------------------
-        # Extract only the Marks section
-        # ----------------------------
         ext = html.find("EXTERNAL MARKS")
         prev = html.find("PREVIOUS SEMESTERS ATTENDANCE")
 
@@ -20,24 +17,12 @@ class MarksParser:
             else:
                 marks_html = html[ext:]
 
-        # ----------------------------
-        # Parse only this section
-        # ----------------------------
         soup = BeautifulSoup(marks_html, "lxml")
-
-        tables = soup.find_all("table")
-
-    
-        #soup = BeautifulSoup(html, "lxml")
 
         result = {
             "cgpa": None,
             "semesters": []
         }
-
-        # ------------------------
-        # CGPA
-        # ------------------------
 
         text = soup.get_text(" ", strip=True)
 
@@ -46,20 +31,13 @@ class MarksParser:
         if m:
             result["cgpa"] = float(m.group(1))
 
-        # ------------------------
-        # Semester Parser
-        # ------------------------
-
         result["semesters"] = MarksParser.parse_semesters(soup)
 
         return result
 
-
     @staticmethod
     def parse_semesters(soup):
-
         semesters = []
-
         tables = soup.find_all("table")
 
         semester_names = [
@@ -104,7 +82,6 @@ class MarksParser:
                 "subjects": []
             }
 
-            # Remove last value like 19.5/19.5
             if credits:
                 credits = credits[:-1]
 

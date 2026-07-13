@@ -1,27 +1,29 @@
 
-from fastapi import APIRouter
-from fastapi.security import HTTPBearer
-router = APIRouter()
+import logging
 
-security = HTTPBearer()
-
-
-from fastapi import Depends, HTTPException, Request, Query
-from fastapi.security import HTTPAuthorizationCredentials
-from jose import JWTError, jwt
-from sqlalchemy.orm import Session
 from bs4 import BeautifulSoup
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError
+from sqlalchemy.orm import Session
 
+from app.clients.aec_client import (
+    AECPortalTimeoutError,
+    AECPortalUnavailableError,
+    AECSessionExpiredError,
+)
+from app.core.rate_limit import limiter
 from app.database.database import get_db
 from app.models.student import Student
 from app.parser.attendance_parser import AttendanceParser
 from app.parser.marks_parser import MarksParser
-from app.security.jwt import JWT_SECRET, ALGORITHM
-from app.config.settings import settings
-from app.services.session_manager import SessionManager
 from app.services.cache_service import CacheService
-from app.core.rate_limit import limiter
 from app.security.jwt import verify_token
+from app.services.session_manager import SessionManager
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+security = HTTPBearer()
 
 
 @router.get("/")
@@ -59,12 +61,8 @@ def get_dashboard(
     if not refresh:
 
         cached = CacheService.get_dashboard(roll)
-
         if cached is not None:
-            print(f"[CACHE HIT] {roll}")
             return cached
-
-    print(f"[CACHE MISS] {roll}")
 
     # -----------------------------
     # Get existing session
@@ -80,9 +78,28 @@ def get_dashboard(
     # -----------------------------
     # Fetch live data
     # -----------------------------
-    attendance_html = client.get_attendance()
-    marks_html = client.get_marks()
-    student_html = client.get_student_master()
+    try:
+        attendance_html = client.get_attendance()
+        marks_html = client.get_marks()
+        student_html = client.get_student_master()
+    except AECSessionExpiredError as exc:
+        logger.warning("AEC portal session expired while loading dashboard")
+        raise HTTPException(
+            status_code=401,
+            detail="Session expired. Please login again.",
+        ) from exc
+    except AECPortalTimeoutError as exc:
+        logger.warning("AEC portal timed out while loading dashboard")
+        raise HTTPException(
+            status_code=504,
+            detail="AEC portal timed out. Please try again.",
+        ) from exc
+    except AECPortalUnavailableError as exc:
+        logger.error("AEC portal unavailable while loading dashboard")
+        raise HTTPException(
+            status_code=503,
+            detail="AEC portal is currently unavailable. Please try again later.",
+        ) from exc
 
     attendance = AttendanceParser.parse(attendance_html)
     marks = MarksParser.parse(marks_html)

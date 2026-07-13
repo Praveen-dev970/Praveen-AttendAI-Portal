@@ -7,7 +7,12 @@ from app.schemas.auth import (
     StudentResponse
 )
 
-from app.clients.aec_client import AECAuthenticationError
+from app.clients.aec_client import (
+    AECAuthenticationError,
+    AECPortalTimeoutError,
+    AECPortalUnavailableError,
+    AECSessionExpiredError,
+)
 from app.database.database import get_db
 from app.services.auth_service import AuthService
 
@@ -44,4 +49,19 @@ def login(
         raise HTTPException(
             status_code=401,
             detail="Invalid Roll Number or Password",
+        )
+    except AECSessionExpiredError:
+        raise HTTPException(
+            status_code=401,
+            detail="Session expired. Please login again.",
+        )
+    except AECPortalTimeoutError:
+        raise HTTPException(
+            status_code=504,
+            detail="AEC portal timed out. Please try again.",
+        )
+    except AECPortalUnavailableError:
+        raise HTTPException(
+            status_code=503,
+            detail="AEC portal is currently unavailable. Please try again later.",
         )
