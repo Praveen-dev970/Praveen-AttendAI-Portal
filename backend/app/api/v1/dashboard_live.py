@@ -12,6 +12,9 @@ from app.services.session_manager import SessionManager
 from app.parser.attendance_parser import AttendanceParser
 from app.parser.marks_parser import MarksParser
 
+from fastapi import Query
+from app.services.cache_service import CacheService
+
 from fastapi import Request
 
 from app.core.rate_limit import limiter
@@ -25,6 +28,7 @@ security = HTTPBearer()
 @limiter.limit("30/minute")
 def get_dashboard(
     request: Request,
+    refresh: bool = Query(False),
     credentials=Depends(security),
     db: Session = Depends(get_db)
 ):
