@@ -18,6 +18,11 @@ A modern full-stack web application that integrates with the **AEC Student Porta
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-06B6D4?logo=tailwindcss)
 ![JWT](https://img.shields.io/badge/Auth-JWT-success)
 ![License](https://img.shields.io/badge/License-MIT-green)
+![Version](https://img.shields.io/badge/version-v1.2.0-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.138-green)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 </div>
 
@@ -196,6 +201,11 @@ The platform enables students to:
 <p align="center">
   <img src="docs/images/profile.png" width="90%">
 </p>
+
+---
+# 🌐 Live Demo: [https://praveen-attendai.vercel.app](https://praveen-attendai.vercel.app)
+# 🔗 Backend API: [https://<your-render-service>.onrender.com](https://attendai-api-jehv.onrender.com/)
+# 📚 API Docs: [https://<your-render-service>.onrender.com/](https://attendai-api-jehv.onrender.com/)docs
 
 ---
 
