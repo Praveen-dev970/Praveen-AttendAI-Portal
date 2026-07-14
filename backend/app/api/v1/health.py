@@ -3,10 +3,10 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("/health")
 def health():
     return {
         "status": "healthy",
         "project": "Praveen AttendAI",
-        "version": "1.0.0"
+        "version": "1.1.0"
     }

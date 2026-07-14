@@ -9,6 +9,19 @@ node_modules/
 coverage/
 .pytest_cache/
 
+# Environment files
+.env
+.env.*
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
 # Logs
 *.log
 
