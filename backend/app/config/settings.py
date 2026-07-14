@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str
     AEC_BASE_URL: str
+    FRONTEND_URL: str | None = None
     access_token_expire_minutes: int = 1440
 
     model_config = SettingsConfigDict(
