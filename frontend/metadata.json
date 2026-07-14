@@ -1,0 +1,6 @@
+{
+  "name": "Praveen AttendAI",
+  "description": "A highly polished student attendance, academic performance, and sync manager with dynamic statistics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
