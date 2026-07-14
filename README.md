@@ -204,8 +204,8 @@ The platform enables students to:
 
 ---
 # 🌐 Live Demo: [https://praveen-attendai.vercel.app](https://praveen-attendai.vercel.app)
-# 🔗 Backend API: [https://<your-render-service>.onrender.com](https://attendai-api-jehv.onrender.com/)
-# 📚 API Docs: [https://<your-render-service>.onrender.com/](https://attendai-api-jehv.onrender.com/)docs
+# 🔗 Backend API: [https://attendai-api-jehv.onrender.com](https://attendai-api-jehv.onrender.com/)
+# 📚 API Docs: [https://attendai-api-jehv.onrender.com/](https://attendai-api-jehv.onrender.com/docs)
 
 ---
 
