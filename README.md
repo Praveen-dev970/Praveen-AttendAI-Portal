@@ -347,7 +347,7 @@ Before running the project, ensure the following software is installed:
 ## Clone Repository
 
 ```bash
-git clone https://github.com/<Praveen-dev970>/Praveen-AttendAI.git
+git clone https://github.com/Praveen-dev970/Praveen-AttendAI.git
 
 cd Praveen-AttendAI
 ```
