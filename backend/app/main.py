@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.database.database import Base, engine
+from app.config.settings import settings
 
 # Import models so SQLAlchemy registers them
 import app.database.base
@@ -73,8 +74,10 @@ app.include_router(
 
 origins = [
     "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    #"https://praveen-attendai.vercel.app",
 ]
+if settings.FRONTEND_URL:
+    origins.append(settings.FRONTEND_URL)
 
 app.add_middleware(
     CORSMiddleware,
