@@ -21,7 +21,11 @@ class LivePortalService:
     def get_dashboard(self, roll_number: str, password: str):
         self.login(roll_number, password)
         student_html = self.client.get_student_master()
+        #with open("student_master.html", "w", encoding="utf-8") as f:
+         #   f.write(student_html)
         profile_html = self.client.get_student_profile(roll_number)
+        #with open("student_profile.html", "w", encoding="utf-8") as f:
+         #   f.write(profile_html)
         attendance_html = self.client.get_attendance()
         marks_html = self.client.get_marks()
         student_soup = BeautifulSoup(student_html, "lxml")
@@ -35,11 +39,14 @@ class LivePortalService:
                 .strip()
             )
         profile = ProfileParser.parse(profile_html)
-        if profile.get("name"):
-            name = profile["name"]
+        #if profile.get("name"):
+        #    name = profile["name"]
         branch = profile.get("branch", "")
         semester = profile.get("semester", "")
         course = profile.get("course", "")
+        #print(profile)
+        #print("Branch:", branch)
+        #print("Semester:", semester)
         semester = semester.replace("Regular(", "").replace(")", "").strip()
         attendance = AttendanceParser.parse(attendance_html)
         marks = MarksParser.parse(marks_html)

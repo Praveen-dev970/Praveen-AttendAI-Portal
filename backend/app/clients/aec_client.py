@@ -115,13 +115,32 @@ class AECClient:
             f"{self.BASE_URL}/ajax/"
             "StudentProfile,App_Web_studentprofile.aspx.a2a1b31c.ashx"
         )
-        data = {
+
+        params = {
             "_method": "ShowStudentProfileNew",
             "_session": "rw",
-            "RollNo": roll_number,
-            "isImageDisplay": "false",
         }
-        response = self._request("POST", url, data=data)
+
+        headers = {
+            "Accept": "*/*",
+            "Content-Type": "text/plain;charset=UTF-8",
+            "Referer": f"{self.BASE_URL}/Academics/StudentProfile.aspx?scrid=17",
+            "Origin": "https://info.aec.edu.in",
+        }
+
+        body = (
+            f"RollNo={roll_number}\r\n\r\n"
+            "isImageDisplay=false"
+        )
+
+        response = self._request(
+            "POST",
+            url,
+            params=params,
+            headers=headers,
+            data=body,
+        )
+
         return response.text
 
     def _get_login_page(self):

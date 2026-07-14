@@ -15,26 +15,28 @@ class ProfileParser:
             "semester": ""
         }
 
-        rows = soup.find_all("tr")
+        tds = soup.find_all("td")
 
-        for row in rows:
+        for i, td in enumerate(tds):
 
-            cols = row.find_all("td")
+            text = td.get_text(" ", strip=True)
 
-            texts = [c.get_text(" ", strip=True) for c in cols]
+            if text == "Name":
+                profile["name"] = tds[i + 2].get_text(" ", strip=True)
 
-            for i, text in enumerate(texts):
+            elif text == "Course":
+                profile["course"] = tds[i + 2].get_text(" ", strip=True)
 
-                if text == "Name" and i + 2 < len(texts):
-                    profile["name"] = texts[i + 2]
+            elif text == "Branch":
+                profile["branch"] = tds[i + 2].get_text(" ", strip=True)
 
-                elif text == "Course" and i + 2 < len(texts):
-                    profile["course"] = texts[i + 2]
-
-                elif text == "Branch" and i + 2 < len(texts):
-                    profile["branch"] = texts[i + 2]
-
-                elif text == "Semester" and i + 2 < len(texts):
-                    profile["semester"] = texts[i + 2]
+            elif text == "Semester":
+                profile["semester"] = (
+                    tds[i + 2]
+                    .get_text(" ", strip=True)
+                    .replace("Regular(", "")
+                    .replace(")", "")
+                    .strip()
+                )
 
         return profile
