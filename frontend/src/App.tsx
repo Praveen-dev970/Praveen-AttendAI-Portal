@@ -67,6 +67,7 @@ function mapDashboard(dashboard: DashboardResponse) {
             },
 
             marks: null,
+            
         })),
 
         marks: dashboard.marks
