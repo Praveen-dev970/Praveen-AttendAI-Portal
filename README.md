@@ -190,6 +190,11 @@ The platform enables students to:
 </p>
 
 ---
+## 🎓 Semester wise Marks
+<p align="center">
+  <img src="docs/images/marks(2).png" width="90%">
+</p>
+---
 
 ## 📈 Analytics
 
