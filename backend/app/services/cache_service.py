@@ -12,5 +12,5 @@ class CacheService:
         return dashboard_cache.get(roll_number)
 
     @staticmethod
-    def set_dashboard(roll_number: str, data):
+    def set_dashboard(roll_number: str, data: dict) -> None:
         dashboard_cache[roll_number] = data

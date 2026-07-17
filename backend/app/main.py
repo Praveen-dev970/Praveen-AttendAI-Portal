@@ -10,7 +10,10 @@ from app.api.v1.calculator import router as calculator_router
 from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.dashboard_live import router as dashboard_router_live
+from app.api.v1.attendance_dashboard import router as attendance_dashboard_router
+from app.api.v1.sync import router as sync_router
 from fastapi.middleware.cors import CORSMiddleware
+
 
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -48,6 +51,12 @@ app.include_router(
 )
 
 app.include_router(
+    attendance_dashboard_router,
+    prefix="/api/v1/attendance-dashboard",
+    tags=["Attendance Dashboard"],
+)
+
+app.include_router(
     calculator_router,
     prefix="/api/v1/calculator",
     tags=["Calculator"]
@@ -72,9 +81,17 @@ app.include_router(
     tags=["Dashboard Live"]
 )
 
+app.include_router(
+    sync_router,
+    tags=["Sync"],
+)
+
+
+
+
 origins = [
     "http://localhost:5173",
-    #"https://praveen-attendai.vercel.app",
+    "http://127.0.0.1:5173",
 ]
 if settings.FRONTEND_URL:
     origins.append(settings.FRONTEND_URL)

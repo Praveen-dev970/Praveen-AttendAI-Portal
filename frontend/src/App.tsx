@@ -14,10 +14,70 @@ import { motion } from 'motion/react';
 import { LayoutDashboard, ClipboardCheck, Calculator, Award, BarChart3, User as UserIcon, Settings } from 'lucide-react';
 
 import { api, getAuthToken, setAuthToken } from './lib/api.js';
-import type { Student, AttendanceSubject, MarksResponse } from './types.js';
+import { triggerSync } from './lib/syncApi.js';
+import { SyncProgressModal } from './components/SyncProgressModal.js';
+import type { Student, DashboardResponse } from './types.js';
 
+function mapDashboard(dashboard: DashboardResponse) {
+
+    const attendance = dashboard.attendance ?? {};
+
+    const overall = attendance.overall?.overall ?? {
+        held: 0,
+        attended: 0,
+        percentage: 0,
+    };
+
+    const subjects = attendance.overall?.subjects ?? [];
+
+    return {
+        stats: {
+            overallAttendance: Number(overall.percentage),
+            classesPresent: Number(overall.attended),
+            classesLate: 0,
+            totalClasses: Number(overall.held),
+            heldClasses: Number(overall.held),
+            classesAbsent: Number(overall.held) - Number(overall.attended),
+            bunkableClasses: Math.max(
+                0,
+                Math.floor(
+                    Number(overall.attended) -
+                    Number(overall.held) * 0.75
+                )
+            ),
+            rollNumber: dashboard.student.roll_number,
+            
+        },
+
+        subjects,
+
+        subjectWise: subjects.map((subject) => ({
+            subject: {
+                subject: subject.subject,
+            },
+
+            stats: {
+                held: subject.held,
+                attended: subject.attended,
+                percentage: subject.percentage,
+                present: subject.attended,
+                total: subject.held,
+                late: 0,
+                //rollNumber: dashboard.student.roll_number,
+            },
+
+            marks: null,
+        })),
+
+        marks: dashboard.marks
+            ? [dashboard.marks]
+            : [],
+    };
+}
 export default function App() {
   const [syncing, setSyncing] = useState(false);
+  const [syncJobId, setSyncJobId] = useState<string | null>(null);
+  const [isSyncProgressOpen, setIsSyncProgressOpen] = useState(false);
   const [student, setStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [loading, setLoading] = useState<boolean>(true);
@@ -62,6 +122,16 @@ export default function App() {
   const [subjectWise, setSubjectWise] = useState<any[]>([]);
   const [marks, setMarks] = useState<any[]>([]);
 
+  const applyDashboard = (dashboard: DashboardResponse) => {
+    const mapped = mapDashboard(dashboard);
+    setStudent(dashboard.student as any);
+    setStats(mapped.stats);
+    setSubjects(mapped.subjects);
+    setRecords([]);
+    setSubjectWise(mapped.subjectWise);
+    setMarks(mapped.marks);
+  };
+
   // Authenticate session on boot
   useEffect(() => {
     const initAuth = async () => {
@@ -91,55 +161,27 @@ export default function App() {
   const loadAllData = async () => {
     try {
       const dashboard = await api.getDashboard(false);
-      // Map new dashboard shape to the legacy UI shape expected by the components
-      const overall = dashboard.attendance?.overall || { held: 0, attended: 0, percentage: 0 };
-
-      const mappedStats = {
-        overallAttendance: overall.percentage,
-        classesPresent: overall.attended,
-        classesLate: 0,
-        totalClasses: overall.held,
-        classesAbsent: Math.max(0, (overall.held || 0) - (overall.attended || 0)),
-        bunkableClasses: Math.max(0, Math.floor((overall.attended || 0) - 0.75 * (overall.held || 0))),
-        heldClasses: overall.held,
-      };
-
-      const mappedSubjectWise = (dashboard.attendance?.subjects || []).map((s: any) => ({
-        subject: { subject: s.subject || '' },
-        stats: {
-          held: s.held ?? 0,
-          attended: s.attended ?? 0,
-          percentage: s.percentage ?? 0,
-          present: s.attended ?? 0,
-          total: s.held ?? 0,
-          late: 0,
-        },
-        marks: null,
-      }));
-
-      // Create a lightweight user object that preserves the old UI fields
-      setStudent(dashboard.student as any);
-      setStats(mappedStats as any);
-      setSubjects(dashboard.attendance?.subjects || []);
-      setRecords([]);
-      setSubjectWise(mappedSubjectWise as any[]);
-      setMarks(dashboard.marks ? [dashboard.marks as MarksResponse] : []);
+      applyDashboard(dashboard);
     } catch (err) {
       console.error('Failed to load portal metrics:', err);
     }
   };
 
-  const handleLoginSuccess = async (_loggedInUser: any) => {
+  const handleLoginSuccess = async (loginRes: any) => {
     setLoading(true);
     const startTime = Date.now();
-    await loadAllData();
-    
+
+    const dashboard = loginRes?.dashboard;
+    if (dashboard) {
+      applyDashboard(dashboard as DashboardResponse);
+    }
+
     const elapsed = Date.now() - startTime;
     const minDelay = 2500; // Ensure login loader is visible
     if (elapsed < minDelay) {
       await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
     }
-    
+
     setLoading(false);
     setActiveTab('dashboard');
   };
@@ -161,12 +203,24 @@ export default function App() {
   };
 
   const handleSyncTriggered = async (_log: any) => {
+    if (syncing) return;
+
     setSyncing(true);
     try {
-      await api.getDashboard(true);
-      await loadAllData();
+      const job = await triggerSync();
+      setSyncJobId(job.job_id);
+      setIsSyncProgressOpen(true);
     } catch (err) {
-      console.error('Failed to sync portal metrics:', err);
+      console.error('Failed to start portal sync:', err);
+      setSyncing(false);
+    }
+  };
+
+  const handleSyncFinished = async (status: 'completed' | 'failed') => {
+    try {
+      if (status === 'completed') {
+        await loadAllData();
+      }
     } finally {
       setSyncing(false);
     }
@@ -383,6 +437,13 @@ export default function App() {
         </main>
 
       </div>
+
+      <SyncProgressModal
+        jobId={syncJobId}
+        isOpen={isSyncProgressOpen}
+        onClose={() => setIsSyncProgressOpen(false)}
+        onFinished={handleSyncFinished}
+      />
 
       {/* Mobile Bottom Navigation Bar (Glassmorphic, styled for premium UI) */}
       <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800/80 px-2 py-2 flex justify-around items-center shadow-lg transition-all">

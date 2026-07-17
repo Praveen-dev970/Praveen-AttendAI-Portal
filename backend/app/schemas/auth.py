@@ -15,3 +15,4 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     student: StudentResponse
+    dashboard: dict

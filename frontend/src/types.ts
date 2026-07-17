@@ -22,7 +22,9 @@ export interface LoginResponse {
   access_token: string;
   token_type: string;
   student: Student;
+  dashboard: DashboardResponse;
 }
+
 
 /* ===========================
    Attendance
@@ -30,8 +32,8 @@ export interface LoginResponse {
 
 export interface AttendanceSummary {
   held: number;
-  attended: number;
-  percentage: number;
+  att: number;
+  per: number;
 }
 
 export interface AttendanceSubject {
@@ -41,9 +43,15 @@ export interface AttendanceSubject {
   percentage: number;
 }
 
-export interface AttendanceResponse {
-  overall: AttendanceSummary;
+export interface AttendancePeriod {
   subjects: AttendanceSubject[];
+  overall: AttendanceSummary;
+}
+
+export interface AttendanceResponse {
+  overall: AttendancePeriod;
+  today: AttendancePeriod;
+  yesterday: AttendancePeriod;
 }
 
 /* ===========================
