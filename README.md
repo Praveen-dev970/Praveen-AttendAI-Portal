@@ -177,6 +177,9 @@ The platform enables students to:
 <p align="center">
   <img src="docs/images/attendance.png" width="90%">
 </p>
+<p align="center">
+  <img src="docs/images/attendanceDay.png" width="90%">
+</p>
 
 ---
 
