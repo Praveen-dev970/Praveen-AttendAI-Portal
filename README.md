@@ -192,7 +192,7 @@ The platform enables students to:
 ---
 ## 🎓 Semester wise Marks
 <p align="center">
-  <img src="docs/images/marks(2).png" width="90%">
+  <img src="docs/images/marks (2).png" width="90%">
 </p>
 ---
 
