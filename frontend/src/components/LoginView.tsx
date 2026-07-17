@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
+
+
+
+
 import { Sparkles, Lock, ShieldCheck, ChevronRight, AlertCircle, CheckCircle2, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { api } from '../lib/api.js';
 
 interface LoginViewProps {
-  onLoginSuccess: (user: any) => void;
+  onLoginSuccess: (loginResponse: any) => void;
 }
 
 export default function LoginView({ onLoginSuccess }: LoginViewProps) {
@@ -18,11 +22,87 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [success, setSuccess] = useState('');
   const [showForgotTip, setShowForgotTip] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const stages = [
+    'Connecting to AEC Portal',
+    'Authenticating',
+    'Loading Student Profile',
+    'Loading Attendance',
+    'Loading Marks',
+    'Preparing Dashboard',
+  ] as const;
+
+  const stageProgress = [
+    { index: 0, pct: 10 },
+    { index: 1, pct: 30 },
+    { index: 2, pct: 50 },
+    { index: 3, pct: 70 },
+    { index: 4, pct: 85 },
+    { index: 5, pct: 100 },
+  ];
+
+
+  const [stageIndex, setStageIndex] = useState(0);
+  const [progressPct, setProgressPct] = useState(0);
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
+
+    // Progressive loader setup
+    setStageIndex(0);
+    setProgressPct(0);
+
+    let timers: Array<number> = [];
+    const clearTimers = () => {
+      timers.forEach((t) => window.clearTimeout(t));
+      timers = [];
+    };
+
+    // Auto-advance messages while login request is in-flight.
+    // (Deterministic client-side progression to improve perceived performance.)
+    clearTimers();
+    timers.push(
+      window.setTimeout(() => {
+        setStageIndex(0);
+        setProgressPct(stageProgress[0].pct);
+      }, 150)
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setStageIndex(1);
+        setProgressPct(stageProgress[1].pct);
+      }, 700)
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setStageIndex(2);
+        setProgressPct(stageProgress[2].pct);
+      }, 1200)
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setStageIndex(3);
+        setProgressPct(stageProgress[3].pct);
+      }, 1700)
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setStageIndex(4);
+        setProgressPct(stageProgress[4].pct);
+      }, 2200)
+    );
+
+    // Final stage: reached either when timers finish.
+    timers.push(
+      window.setTimeout(() => {
+        setStageIndex(5);
+        setProgressPct(stageProgress[5].pct);
+      }, 2800)
+    );
+
+
 
     // Input Validation
     if (!rollNumber.trim()) {
@@ -37,20 +117,27 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
     }
 
     try {
-    const res = await api.login(
-      {
-        roll_number: rollNumber,
-        password: password,
-      },
-      rememberMe
-    );      
-    setSuccess('Credentials authenticated! Synchronizing academic index metrics...');
-      onLoginSuccess(res.student);
+      const res = await api.login(
+        {
+          roll_number: rollNumber,
+          password: password,
+        },
+        rememberMe
+      );
+      setSuccess('Credentials authenticated! Synchronizing academic index metrics...');
+      onLoginSuccess(res);
     } catch (err: any) {
+      clearTimers();
+      setStageIndex(0);
+      setProgressPct(0);
       setError(err.message || 'Authentication error. Please verify roll number and password.');
     } finally {
+      clearTimers();
+      setStageIndex(5);
+      setProgressPct(100);
       setLoading(false);
     }
+
   };
 
   const fillDemo = () => {
@@ -177,7 +264,8 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
                 required
                 placeholder="e.g. 23A91A61"
                 value={rollNumber}
-                onChange={(e) => setRollNumber(e.target.value.toUpperCase())}
+                onChange={(e: any) => setRollNumber(e.target.value.toUpperCase())}
+
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-900/40 border border-slate-800 rounded-xl text-xs font-display focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-100 placeholder-slate-500"
               />
               <ShieldCheck className="w-4 h-4 text-indigo-400 absolute left-3.5 top-3.5" />
@@ -193,7 +281,8 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
                 required
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: any) => setPassword(e.target.value)}
+
                 className="w-full pl-10 pr-10 py-2.5 bg-slate-900/40 border border-slate-800 rounded-xl text-xs font-display focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-100 placeholder-slate-500"
               />
               <Lock className="w-4 h-4 text-indigo-400 absolute left-3.5 top-3.5" />
@@ -214,7 +303,8 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
               <input
                 type="checkbox"
                 checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
+                onChange={(e: any) => setRememberMe(e.target.checked)}
+
                 className="w-4 h-4 rounded border-slate-800 bg-slate-900 text-indigo-600 focus:ring-indigo-500/20 cursor-pointer"
               />
               <span className="text-xs text-slate-400 group-hover:text-slate-200 transition-colors font-display">
@@ -249,18 +339,37 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           </AnimatePresence>
 
           {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-display font-semibold py-3 rounded-xl text-xs shadow-lg shadow-indigo-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <span>{loading ? 'Authenticating Secures...' : 'Authenticate Student ID'}</span>
-            {loading ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
+          <div className="space-y-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-display font-semibold py-3 rounded-xl text-xs shadow-lg shadow-indigo-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <span>{loading ? stages[stageIndex] : 'Authenticate Student ID'}</span>
+              {loading ? (
+                <div className="w-4 h-4 rounded-full bg-white/10 border border-white/25 animate-pulse" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+
+            {/* Animated progress indicator */}
+            {loading && (
+              <div className="w-full">
+                <div className="h-2 bg-slate-900/40 border border-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-[width] duration-500"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                  <span>{stages[stageIndex]}</span>
+                  <span>{progressPct}%</span>
+                </div>
+              </div>
             )}
-          </button>
+          </div>
+
         </form>
 
         <div className="text-center pt-2">

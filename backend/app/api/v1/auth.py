@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
-    StudentResponse
+    StudentResponse,
 )
 
 from app.clients.aec_client import (
@@ -42,7 +42,9 @@ def login(
 
         return LoginResponse(
             access_token=result["access_token"],
+            token_type="bearer",
             student=StudentResponse(**result["student"]),
+            dashboard=result["dashboard"],
         )
 
     except AECAuthenticationError:

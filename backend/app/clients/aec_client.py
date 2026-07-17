@@ -184,7 +184,7 @@ class AECClient:
         logger.info("AEC portal login succeeded")
         return True
 
-    def get_attendance(self):
+    def get_attendance(self, from_date: str = "", to_date: str = "") -> str:
         attendance_page = f"{self.BASE_URL}/Academics/studentattendance.aspx"
         self._request(
             "GET",
@@ -194,7 +194,11 @@ class AECClient:
         response = self._request(
             "POST",
             f"{attendance_page}/ShowAttendance",
-            json={"fromDate": "", "toDate": "", "excludeothersubjects": False},
+            json={
+                "fromDate": from_date,
+                "toDate": to_date,
+                "excludeothersubjects": False,
+            },
             headers={
                 "Content-Type": "application/json; charset=UTF-8",
                 "X-Requested-With": "XMLHttpRequest",

@@ -228,7 +228,7 @@ export default function DashboardView({
                         </button>
                       </div>
                     </div>
-                    <span className="text-slate-600 dark:text-slate-300">Current: <strong className="font-bold text-slate-900 dark:text-white">{currentOverallAttendance.toFixed(2)}%</strong></span>
+                    <span className="text-slate-600 dark:text-slate-300">Current: <strong className="font-bold text-slate-900 dark:text-white">{(currentOverallAttendance ?? 0).toFixed(2)}%</strong></span>
                   </div>
                   <p className="mt-1.5 text-[9px] text-slate-400 dark:text-slate-500">Day estimate updates automatically.</p>
                 </div>

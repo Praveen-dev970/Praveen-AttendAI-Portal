@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.sql import func
 
 from app.database.database import Base
 from sqlalchemy.orm import relationship
+
 
 class Attendance(Base):
     __tablename__ = "attendance"
@@ -24,7 +25,4 @@ class Attendance(Base):
         server_default=func.now()
     )
 
-    student = relationship(
-    "Student",
-    back_populates="attendance"
-    )
+    student = relationship("Student", back_populates="attendance")

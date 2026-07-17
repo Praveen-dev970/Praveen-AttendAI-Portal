@@ -4,7 +4,7 @@ import math
 class AttendanceCalculator:
 
     @staticmethod
-    def calculate_summary(attendance_data: list):
+    def calculate_summary(attendance_data: list) -> dict[str, float | int]:
 
         total_held = sum(item.held for item in attendance_data)
         total_attended = sum(item.attended for item in attendance_data)
@@ -65,7 +65,7 @@ class AttendanceCalculator:
 
 
     @staticmethod
-    def required_classes(total_held, total_attended, target):
+    def required_classes(total_held: int, total_attended: int, target: float) -> int:
         """
         Returns how many consecutive classes must be attended
         to reach the target attendance percentage.

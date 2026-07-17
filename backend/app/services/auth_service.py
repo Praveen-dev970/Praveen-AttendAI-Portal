@@ -33,7 +33,11 @@ class AuthService:
         # Keep the existing database-backed attendance endpoints current. Marks
         # are fetched above for the CGPA and live dashboard response, but portal
         # credentials and marks payloads are never persisted on the student.
-        SyncService.save_attendance(db, student, portal_data["attendance"])
+        SyncService.save_attendance(
+            db,
+            student,
+            portal_data["attendance"]["overall"],
+        )
 
         token = create_access_token(
             {
@@ -47,4 +51,5 @@ class AuthService:
                 "roll_number": student.roll_number,
                 "cgpa": student.cgpa,
             },
+            "dashboard": portal_data,
         }

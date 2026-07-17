@@ -2,15 +2,19 @@ import type {
   LoginRequest,
   LoginResponse,
   DashboardResponse,
-  AttendanceResponse,
   MarksResponse,
   CalculatorRequest,
   CalculatorResponse,
   Student,
 } from "../types";
+import type {
+  TodayAttendanceResponse,
+  YesterdayAttendanceResponse,
+} from "../types/attendance";
+
 
 // import.meta.env may not be typed in some TS configs; cast to any to avoid TS errors
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL  || "http://localhost:8000";
 
 /* =========================================================
    Authentication Helpers
@@ -105,6 +109,7 @@ async function request<T>(
 ========================================================= */
 
 export const api = {
+
   /**
    * Login
    */
@@ -130,39 +135,58 @@ export const api = {
    * Dashboard
    */
   getDashboard(refresh = false): Promise<DashboardResponse> {
-  return request<DashboardResponse>(
-    `/dashboard${refresh ? "?refresh=true" : ""}`
-  );
-},
+    // Standardized: use ONLY `/dashboard` (no trailing slash) to avoid 307 redirects.
+    const endpoint = `/dashboard${refresh ? "?refresh=true" : ""}`;
+    return request<DashboardResponse>(endpoint);
+  },
 
   /** Compatibility wrappers for legacy UI calls — map new dashboard shape */
   async getMe() {
     const d = await request<DashboardResponse>("/dashboard");
-    const student = d.student || { roll_number: 'unknown', cgpa: null };
-    return { user: { id: student.roll_number, name: String(student.roll_number), rollNumber: String(student.roll_number), cgpa: student.cgpa } };
+    const student = d.student || { roll_number: "unknown", cgpa: null };
+    return {
+      user: {
+        id: student.roll_number,
+        name: String(student.roll_number),
+        rollNumber: String(student.roll_number),
+        cgpa: student.cgpa,
+      },
+    };
   },
 
   async getDashboardStats() {
     const d = await request<DashboardResponse>("/dashboard");
-    const overall = d.attendance?.overall || { held: 0, attended: 0, percentage: 0 };
+    const overall = d.attendance?.overall?.overall || { held: 0, att: 0, per: 0 };
     return {
-      overallAttendance: overall.percentage,
-      classesPresent: overall.attended,
+      overallAttendance: overall.per,
+      classesPresent: overall.att,
       classesLate: 0,
       totalClasses: overall.held,
-      bunkableClasses: Math.max(0, Math.floor((overall.attended || 0) - 0.75 * (overall.held || 0))),
+      bunkableClasses: Math.max(
+        0,
+        Math.floor((overall.att || 0) - 0.75 * (overall.held || 0))
+      ),
       heldClasses: overall.held,
     } as any;
   },
 
   async getSubjects() {
     const d = await request<DashboardResponse>("/dashboard");
-    return (d.attendance?.subjects || []).map(s => ({ subject: s.subject, held: s.held, attended: s.attended, percentage: s.percentage }));
+    return (d.attendance?.overall?.subjects || []).map((s) => ({
+      subject: s.subject,
+      held: s.held,
+      attended: s.attended,
+      percentage: s.percentage,
+    }));
   },
 
   async getSubjectWiseAttendance() {
     const d = await request<DashboardResponse>("/dashboard");
-    return (d.attendance?.subjects || []).map(s => ({ subject: { code: s.subject, name: s.subject }, stats: { percentage: s.percentage, attended: s.attended, held: s.held }, marks: null }));
+    return (d.attendance?.overall?.subjects || []).map((s) => ({
+      subject: { code: s.subject, name: s.subject },
+      stats: { percentage: s.percentage, attended: s.attended, held: s.held },
+      marks: null,
+    }));
   },
 
   async getSyncLogs() {
@@ -198,9 +222,15 @@ export const api = {
   /**
    * Attendance
    */
-  getAttendance(): Promise<AttendanceResponse> {
-    return request<AttendanceResponse>("/attendance");
+  getAttendanceToday(): Promise<TodayAttendanceResponse> {
+    return request<TodayAttendanceResponse>("/api/v1/attendance-dashboard/today");
   },
+
+  getAttendanceYesterday(): Promise<YesterdayAttendanceResponse> {
+    return request<YesterdayAttendanceResponse>("/api/v1/attendance-dashboard/yesterday");
+  },
+
+
 
   /**
    * Marks

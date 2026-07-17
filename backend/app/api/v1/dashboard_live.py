@@ -15,8 +15,8 @@ from app.clients.aec_client import (
 from app.core.rate_limit import limiter
 from app.database.database import get_db
 from app.models.student import Student
-from app.parser.attendance_parser import AttendanceParser
 from app.parser.marks_parser import MarksParser
+from app.services.attendance_portal_service import AttendancePortalService
 from app.services.cache_service import CacheService
 from app.security.jwt import verify_token
 from app.services.session_manager import SessionManager
@@ -79,7 +79,7 @@ def get_dashboard(
     # Fetch live data
     # -----------------------------
     try:
-        attendance_html = client.get_attendance()
+        attendance = AttendancePortalService.fetch(client)
         marks_html = client.get_marks()
         student_html = client.get_student_master()
     except AECSessionExpiredError as exc:
@@ -101,7 +101,6 @@ def get_dashboard(
             detail="AEC portal is currently unavailable. Please try again later.",
         ) from exc
 
-    attendance = AttendanceParser.parse(attendance_html)
     marks = MarksParser.parse(marks_html)
 
     # -----------------------------

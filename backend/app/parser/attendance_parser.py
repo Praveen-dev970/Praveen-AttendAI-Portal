@@ -1,70 +1,55 @@
+from __future__ import annotations
+
 import json
+
 from bs4 import BeautifulSoup
 
 
 class AttendanceParser:
-
     @staticmethod
-    def parse(response_text: str):
+    def _number(value: str) -> float:
+        cleaned = value.strip().replace("%", "").replace(",", "")
+        return float(cleaned) if cleaned else 0.0
 
-        data = json.loads(response_text)
-
-        html = data["d"]
-
-        soup = BeautifulSoup(html, "lxml")
+    @classmethod
+    def parse(cls, response_text: str) -> dict:
+        """Parse an AEC ShowAttendance response without inferring attendance status."""
+        payload = json.loads(response_text)
+        soup = BeautifulSoup(payload["d"], "lxml")
 
         subjects = []
+        for row in soup.select("tr.reportData1"):
+            columns = row.find_all("td")
+            if len(columns) < 5:
+                continue
+
+            subjects.append(
+                {
+                    "subject": columns[1].get_text(strip=True),
+                    "held": int(cls._number(columns[2].get_text(strip=True))),
+                    "attended": int(cls._number(columns[3].get_text(strip=True))),
+                    "percentage": cls._number(columns[4].get_text(strip=True)),
+                }
+            )
 
         overall = {
             "held": 0,
             "attended": 0,
-            "percentage": 0
+            "percentage": 0.0,
         }
 
-        # Subject rows
-        for row in soup.select("tr.reportData1"):
-
-            cols = row.find_all("td")
-
-            if len(cols) >= 5:
-
-                subjects.append({
-
-                    "subject": cols[1].get_text(strip=True),
-
-                    "held": int(cols[2].get_text(strip=True) or 0),
-
-                    "attended": int(cols[3].get_text(strip=True) or 0),
-
-                    "percentage": float(cols[4].get_text(strip=True) or 0)
-
-                })
-
-        # Total row
         for row in soup.select("tr.reportHeading2WithBackground"):
+            if "TOTAL" not in row.get_text(" ", strip=True).upper():
+                continue
 
-            text = row.get_text().upper()
+            columns = row.find_all("td")
 
-            if "TOTAL" in text:
+            if len(columns) >= 4:
+                overall = {
+                    "held": int(cls._number(columns[1].get_text(strip=True))),
+                    "attended": int(cls._number(columns[2].get_text(strip=True))),
+                    "percentage": cls._number(columns[3].get_text(strip=True)),
+                }
 
-                cols = row.find_all("td")
-
-                if len(cols) >= 4:
-
-                    overall = {
-
-                        "held": int(cols[1].get_text(strip=True)),
-
-                        "attended": int(cols[2].get_text(strip=True)),
-
-                        "percentage": float(cols[3].get_text(strip=True))
-
-                    }
-
-        return {
-
-            "subjects": subjects,
-
-            "overall": overall
-
-        }
+            break
+        return {"subjects": subjects, "overall": overall}

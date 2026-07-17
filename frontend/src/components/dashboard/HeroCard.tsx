@@ -46,7 +46,7 @@ export default function HeroCard({ stats, currentOverallAttendance, health }: Pr
         <div className="text-xs text-indigo-200 font-mono flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1">
           <span>Last Sync: Today (Live Swipes)</span>
           <span className="hidden md:inline">•</span>
-          <span>Verification ID: 22CS01049</span>
+          <span>Verification ID: {stats.rollNumber}</span>
         </div>
       </div>
 
